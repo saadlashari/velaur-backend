@@ -2,6 +2,11 @@ from pathlib import Path
 from datetime import timedelta
 import os
 from dotenv import load_dotenv
+import dj_database_url
+
+DATABASES = {
+    'default': dj_database_url.parse('postgresql://velaur_db_user:ptHauY0915jHmEw5jrPy2Wpg5MGGxqZ7@dpg-d7h286lckfvc739o3ls0-a/velaur_db')
+}
 
 load_dotenv()
 
