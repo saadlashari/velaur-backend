@@ -1,0 +1,7 @@
+bash
+
+mkdir -p /home/claude/velaur_chatbot_upgrade/backend/chatbot
+mkdir -p /home/claude/velaur_chatbot_upgrade/frontend/src/components
+
+mkdir -p /home/claude/velaur/{backend/{velaur_project,products,orders,payments,users,chatbot,contact},frontend/src/{pages,components,services,assets/css}}
+echo "Structure created"

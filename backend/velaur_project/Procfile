@@ -1,0 +1,1 @@
+web: gunicorn velaur_project.wsgi
