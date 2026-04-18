@@ -13,6 +13,11 @@ import Auth from './pages/Auth';
 import { getProducts } from './services/api';
 import './assets/css/global.css';
 
+const API = import.meta.env.VITE_API_BASE;
+fetch(`${API}/api/users/`)
+  .then(res => res.json())
+  .then(data => console.log(data));
+
 function AppContent() {
   const location = useLocation();
   const [allProducts, setAllProducts] = useState([]);
