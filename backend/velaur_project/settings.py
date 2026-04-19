@@ -4,18 +4,17 @@ import os
 from dotenv import load_dotenv
 import dj_database_url
 
-DATABASES = {
-    'default': dj_database_url.parse('postgresql://velaur_db_user:ptHauY0915jHmEw5jrPy2Wpg5MGGxqZ7@dpg-d7h286lckfvc739o3ls0-a/velaur_db')
-}
-
+BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+SECRET_KEY = os.getenv('SECRET_KEY', 'change-me')
+DEBUG = False
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'velaur-secret-key-change-in-production')
-DEBUG = True
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "velaur-k92p.onrender.com"
+]
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -77,15 +76,21 @@ WSGI_APPLICATION = 'velaur_project.wsgi.application'
 #     }
 # }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'chatbot_db',
+#         'USER': 'postgres',
+#         'PASSWORD': 'saadlashari2002',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'chatbot_db',
-        'USER': 'postgres',
-        'PASSWORD': 'saadlashari2002',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.parse(
+        os.getenv("DATABASE_URL")
+    )
 }
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -102,7 +107,10 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://velaur.vercel.app"
+]
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
