@@ -4,6 +4,9 @@ import os
 from dotenv import load_dotenv
 import dj_database_url
 
+print(os.getenv("DATABASE_URL"))
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
@@ -89,7 +92,7 @@ WSGI_APPLICATION = 'velaur_project.wsgi.application'
 # }
 
 DATABASES = {
-    'default': dj_database_url.parse(
+    'default': dj_database_url.config(
         os.getenv("DATABASE_URL")
     )
 }
@@ -109,9 +112,10 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
     "https://velaur.vercel.app"
 ]
+
+CORS_ALLOW_ALL_ORIGINS = False
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

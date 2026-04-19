@@ -104,3 +104,29 @@ button { cursor: pointer; font-family: var(--font-body); }
 
 .fade-up { animation: fadeUp 0.7s ease forwards; }
 .fade-in { animation: fadeIn 0.5s ease forwards; }
+
+
+/* =============================================
+   MOBILE RESPONSIVE
+   (Original CSS upar bilkul same hai)
+============================================= */
+ 
+@media (max-width: 768px) {
+  .container { padding: 0 1.2rem; }
+  .section-title { font-size: clamp(1.6rem, 6vw, 2.2rem); }
+  .section-subtitle { font-size: 0.78rem; margin-bottom: 2rem; }
+  .btn-primary, .btn-outline { width: 100%; text-align: center; padding: 0.85rem 1rem; }
+}
+ 
+@media (max-width: 480px) {
+  .container { padding: 0 1rem; }
+  .section-title { font-size: clamp(1.4rem, 7vw, 1.9rem); }
+  .section-subtitle { font-size: 0.72rem; letter-spacing: 0.1em; margin-bottom: 1.5rem; }
+  .btn-primary, .btn-outline { width: 100%; padding: 0.8rem 1rem; font-size: 0.75rem; letter-spacing: 0.15em; }
+}
+ 
+@media (max-width: 360px) {
+  .container { padding: 0 0.8rem; }
+  .section-title { font-size: 1.3rem; }
+}
+ 

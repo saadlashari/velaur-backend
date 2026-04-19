@@ -41,8 +41,8 @@ export default function Contact() {
 
             {[
               { icon: '📍', label: 'Location', value: 'Lahore, Pakistan' },
-              { icon: '📞', label: 'Phone', value: '+92-XXX-XXXXXXX' },
-              { icon: '✉️', label: 'Email', value: 'hello@velaur.pk' },
+              { icon: '📞', label: 'Phone', value: '+92-336-1118331' },
+              { icon: '✉️', label: 'Email', value: 'contact@velaur.pk' },
               { icon: '⏰', label: 'Hours', value: 'Mon–Sat: 10am – 8pm' },
             ].map(info => (
               <div key={info.label} style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'flex-start' }}>
