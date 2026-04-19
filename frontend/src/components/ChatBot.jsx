@@ -257,7 +257,7 @@ export default function ChatBot({ products = [] }) {
           right: '2rem',
           zIndex: 9998,
           width: 370,
-          height: 520,
+          height: 470,
           background: '#FFFDF9',
           border: '1px solid #FAE8D0',
           boxShadow: '0 20px 60px rgba(44,24,16,0.15)',
