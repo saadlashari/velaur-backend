@@ -4,6 +4,10 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
+const API = import.meta.env.VITE_API_BASE;
+
+fetch(`${API}/chatbot/config/`)
+
 // Attach JWT token to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('velaur_token');
