@@ -1,9 +1,7 @@
-import axios from 'axios';
-
-const API = import.meta.env.VITE_API_BASE;
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: API_BASE,
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 // Attach JWT token to every request
