@@ -1,15 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 
-const API = import.meta.env.VITE_API_BASE;
+// ✅ Fix 1: Correct env variable name
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
-// ─── API Helpers ─────────────────────────────────────────────────────────────
 const sendMessage = (data) => axios.post(`${API}/chatbot/`, data);
 const getConfig = () => axios.get(`${API}/chatbot/config/`);
 const authAction = (data) => axios.post(`${API}/chatbot/auth/`, data);
 
-// ─── Message Renderer (supports bold **text**) ────────────────────────────────
+// ✅ Fix 2: null check added
 function MessageText({ text }) {
+  if (!text) return null;
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return (
     <span>
@@ -22,7 +23,6 @@ function MessageText({ text }) {
   );
 }
 
-// ─── Quick Reply Buttons ──────────────────────────────────────────────────────
 function QuickReplies({ options, onSelect }) {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.6rem' }}>
@@ -41,7 +41,6 @@ function QuickReplies({ options, onSelect }) {
   );
 }
 
-// ─── Auth Form inside Chat ────────────────────────────────────────────────────
 function AuthForm({ mode, onSubmit, onSwitch }) {
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   return (
@@ -81,7 +80,6 @@ const btnStyle = {
   letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer',
 };
 
-// ─── Main ChatBot Component ───────────────────────────────────────────────────
 export default function ChatBot({ products = [] }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -90,22 +88,29 @@ export default function ChatBot({ products = [] }) {
   const [config, setConfig] = useState(null);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2)}`);
   const [user, setUser] = useState(null);
-  const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [checkoutStep, setCheckoutStep] = useState('idle');
   const [cart, setCart] = useState([]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const messagesEndRef = useRef(null);
 
-  // Load config on mount
+  // ✅ Mobile detection
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     getConfig().then(res => {
       setConfig(res.data);
       setMessages([{
         role: 'assistant',
-        content: res.data.welcome_message,
+        content: res.data.welcome_message || '🌹 Hello! I am Vera, your Velaur shopping assistant.',
         quickReplies: ['Show products', 'Best sellers', 'How to pay?', 'Track order']
       }]);
     }).catch(() => {
+      setConfig({ bot_name: 'Vera' });
       setMessages([{
         role: 'assistant',
         content: '🌹 Hello! I am Vera, your Velaur shopping assistant. How can I help you today?',
@@ -119,35 +124,31 @@ export default function ChatBot({ products = [] }) {
   }, [messages, open]);
 
   const addMessage = (role, content, extra = {}) => {
-    setMessages(prev => [...prev, { role, content, ...extra }]);
+    setMessages(prev => [...prev, { role, content: content || '', ...extra }]);
   };
 
   const handleSend = async (text = null) => {
     const msgText = (text || input).trim();
     if (!msgText || loading) return;
     setInput('');
-
     addMessage('user', msgText);
     setLoading(true);
 
-    // Handle auth triggers
     if (msgText.toLowerCase().includes('login') && !user) {
       setLoading(false);
-      setShowAuth(true);
       setAuthMode('login');
       addMessage('assistant', '🔐 Please login to your Velaur account:', { showAuthForm: true });
       return;
     }
     if (msgText.toLowerCase().includes('register') && !user) {
       setLoading(false);
-      setShowAuth(true);
       setAuthMode('register');
       addMessage('assistant', '🌹 Create your Velaur account:', { showAuthForm: true, authMode: 'register' });
       return;
     }
 
     try {
-      const history = messages.slice(-12).map(m => ({ role: m.role, content: m.content }));
+      const history = messages.slice(-12).map(m => ({ role: m.role, content: m.content || '' }));
       const res = await sendMessage({
         message: msgText,
         history,
@@ -156,17 +157,13 @@ export default function ChatBot({ products = [] }) {
       });
 
       const { reply, action, data, cart: updatedCart } = res.data;
-
-      // Update local cart if returned
       if (updatedCart?.items) setCart(updatedCart.items);
 
-      // Update checkout step tracking
       if (action === 'CHECKOUT_START') setCheckoutStep('confirm_cart');
       else if (action === 'SELECT_PAYMENT') setCheckoutStep('select_payment');
       else if (action === 'PAYMENT_INSTRUCTIONS') setCheckoutStep('payment_details');
       else if (action === 'ORDER_CONFIRMED') setCheckoutStep('idle');
 
-      // Build quick replies based on action
       let quickReplies = [];
       if (action === 'CHECKOUT_START') quickReplies = ['yes', 'no'];
       if (action === 'SELECT_PAYMENT') quickReplies = ['easypaisa', 'jazzcash'];
@@ -174,12 +171,11 @@ export default function ChatBot({ products = [] }) {
       if (action === 'CART_UPDATED') quickReplies = ['show cart', 'checkout', 'continue shopping'];
       if (action === 'ORDER_CONFIRMED') quickReplies = ['Show products', 'Track order'];
 
-      addMessage('assistant', reply, {
+      addMessage('assistant', reply || '', {
         quickReplies: quickReplies.length ? quickReplies : undefined,
         isSuccess: action === 'ORDER_CONFIRMED',
         orderId: data?.order_id,
       });
-
     } catch {
       addMessage('assistant', "I'm having trouble connecting right now. Please try again shortly. 🌹");
     } finally {
@@ -189,26 +185,19 @@ export default function ChatBot({ products = [] }) {
 
   const handleAuth = async (form) => {
     try {
-      const res = await authAction({
-        action: authMode,
-        ...form,
-        session_id: sessionId
-      });
+      const res = await authAction({ action: authMode, ...form, session_id: sessionId });
       if (res.data.success) {
         setUser(res.data.user);
-        setShowAuth(false);
-        // Remove auth form message
         setMessages(prev => prev.filter(m => !m.showAuthForm));
-        addMessage('assistant', res.data.message, {
+        addMessage('assistant', res.data.message || 'Welcome! 🌹', {
           quickReplies: ['Show products', 'View cart', 'My orders']
         });
-        // Save token
         localStorage.setItem('velaur_token', res.data.access);
         localStorage.setItem('velaur_user', JSON.stringify(res.data.user));
       } else {
         addMessage('assistant', `❌ ${res.data.message}`);
       }
-    } catch (err) {
+    } catch {
       addMessage('assistant', '❌ Authentication failed. Please try again.');
     }
   };
@@ -219,17 +208,56 @@ export default function ChatBot({ products = [] }) {
 
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0);
 
-  if (!config) return null;
+  // ✅ Fix 3: Show button even when config is null — no more white screen
+  const botName = config?.bot_name || 'Vera';
+
+  // ✅ Mobile responsive window size
+  const windowStyle = isMobile ? {
+    position: 'fixed',
+    bottom: '5rem',
+    right: 0,
+    left: 0,
+    zIndex: 9998,
+    width: '100vw',
+    height: '75vh',
+    background: '#FFFDF9',
+    border: 'none',
+    borderTop: '1px solid #FAE8D0',
+    boxShadow: '0 -8px 30px rgba(44,24,16,0.12)',
+    display: 'flex',
+    flexDirection: 'column',
+    animation: 'fadeUp 0.3s ease forwards',
+  } : {
+    position: 'fixed',
+    bottom: '6.5rem',
+    right: '2rem',
+    zIndex: 9998,
+    width: 380,
+    height: 540,
+    background: '#FFFDF9',
+    border: '1px solid #FAE8D0',
+    boxShadow: '0 20px 60px rgba(44,24,16,0.15)',
+    display: 'flex',
+    flexDirection: 'column',
+    animation: 'fadeUp 0.3s ease forwards',
+  };
 
   return (
     <>
-      {/* ── Float Button ── */}
+      {/* Float Button */}
       <button onClick={() => setOpen(!open)} style={{
-        position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 9999,
-        width: 50, height: 50, borderRadius: '50%',
+        position: 'fixed',
+        bottom: isMobile ? '1.2rem' : '2rem',
+        right: isMobile ? '1.2rem' : '2rem',
+        zIndex: 9999,
+        width: isMobile ? 52 : 56,
+        height: isMobile ? 52 : 56,
+        borderRadius: '50%',
         background: 'linear-gradient(135deg,#F2A7A7,#F9D5C0)',
-        border: 'none', boxShadow: '0 8px 30px rgba(242,167,167,0.5)',
-        fontSize: '1.6rem', cursor: 'pointer',
+        border: 'none',
+        boxShadow: '0 8px 30px rgba(242,167,167,0.5)',
+        fontSize: '1.5rem',
+        cursor: 'pointer',
         transition: 'transform 0.25s',
         transform: open ? 'rotate(45deg) scale(1.05)' : 'scale(1)',
       }}>
@@ -245,56 +273,53 @@ export default function ChatBot({ products = [] }) {
         )}
       </button>
 
-      {/* ── Chat Window ── */}
+      {/* Chat Window */}
       {open && (
-        <div style={{
-          position: 'fixed', bottom: '6.5rem', right: '2rem', zIndex: 9998,
-          width: 380, height: 480,
-          top: 8,
-          background: '#FFFDF9',
-          border: '1px solid #FAE8D0',
-          boxShadow: '0 20px 60px rgba(44,24,16,0.15)',
-          display: 'flex', flexDirection: 'column',
-          animation: 'fadeUp 0.3s ease forwards',
-        }}>
+        <div style={windowStyle}>
 
           {/* Header */}
           <div style={{
             background: 'linear-gradient(135deg,#F2A7A7,#F9D5C0)',
             padding: '0.9rem 1.2rem',
             display: 'flex', alignItems: 'center', gap: '0.8rem',
+            flexShrink: 0,
           }}>
             <div style={{
-              width: 38, height: 38, borderRadius: '50%',
+              width: 36, height: 36, borderRadius: '50%',
               background: '#FFFDF9', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem',
+              alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem',
             }}>🌹</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'Cormorant Garamond,serif', fontSize: '1rem', color: '#2C1810', fontWeight: 600 }}>
-                {config.bot_name || 'Vera'}
+                {botName}
               </div>
-              <div style={{ fontFamily: 'Jost,sans-serif', fontSize: '0.65rem', color: '#5C3D2E', letterSpacing: '0.08em' }}>
+              <div style={{ fontFamily: 'Jost,sans-serif', fontSize: '0.65rem', color: '#5C3D2E' }}>
                 Velaur Assistant • {user ? `👤 ${user.username}` : 'Guest'}
               </div>
             </div>
-            {/* Cart badge */}
             {cartCount > 0 && (
               <div style={{
                 background: '#2C1810', color: '#FAE8D0',
                 padding: '0.2rem 0.6rem',
                 fontFamily: 'Jost', fontSize: '0.7rem',
-                letterSpacing: '0.05em',
               }}>🛒 {cartCount}</div>
+            )}
+            {/* Close button for mobile */}
+            {isMobile && (
+              <button onClick={() => setOpen(false)} style={{
+                background: 'none', border: 'none', fontSize: '1.2rem',
+                cursor: 'pointer', color: '#2C1810', padding: '0.3rem',
+              }}>✕</button>
             )}
           </div>
 
-          {/* Checkout Step Indicator */}
+          {/* Checkout indicator */}
           {checkoutStep !== 'idle' && (
             <div style={{
               background: '#FDF0E8', padding: '0.4rem 1rem',
               fontFamily: 'Jost', fontSize: '0.68rem',
               color: '#8B6F5E', letterSpacing: '0.1em', textTransform: 'uppercase',
-              borderBottom: '1px solid #FAE8D0',
+              borderBottom: '1px solid #FAE8D0', flexShrink: 0,
             }}>
               🔄 Checkout in progress...
             </div>
@@ -309,7 +334,7 @@ export default function ChatBot({ products = [] }) {
               <div key={i}>
                 <div style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
                   <div style={{
-                    maxWidth: '85%',
+                    maxWidth: isMobile ? '88%' : '85%',
                     padding: '0.7rem 1rem',
                     background: msg.role === 'user'
                       ? '#2C1810'
@@ -317,7 +342,8 @@ export default function ChatBot({ products = [] }) {
                         ? 'linear-gradient(135deg,#e8f5e9,#f1f8e9)'
                         : 'linear-gradient(135deg,#FDF0E8,#FAE8D0)',
                     color: msg.role === 'user' ? '#FAE8D0' : '#2C1810',
-                    fontFamily: 'Jost,sans-serif', fontSize: '0.82rem',
+                    fontFamily: 'Jost,sans-serif',
+                    fontSize: isMobile ? '0.85rem' : '0.82rem',
                     lineHeight: 1.65,
                     borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
                     border: msg.isSuccess ? '1px solid #c8e6c9' : 'none',
@@ -327,7 +353,6 @@ export default function ChatBot({ products = [] }) {
                   </div>
                 </div>
 
-                {/* Auth Form */}
                 {msg.showAuthForm && (
                   <AuthForm
                     mode={msg.authMode || authMode}
@@ -336,14 +361,12 @@ export default function ChatBot({ products = [] }) {
                   />
                 )}
 
-                {/* Quick Replies */}
                 {msg.quickReplies && i === messages.length - 1 && (
                   <QuickReplies options={msg.quickReplies} onSelect={handleSend} />
                 )}
               </div>
             ))}
 
-            {/* Loading dots */}
             {loading && (
               <div style={{ display: 'flex', gap: '0.35rem', padding: '0.3rem 0' }}>
                 {[0, 1, 2].map(j => (
@@ -359,22 +382,21 @@ export default function ChatBot({ products = [] }) {
 
           {/* Input */}
           <div style={{
-            padding: '0.8rem', borderTop: '1px solid #FAE8D0',
-            display: 'flex', gap: '0.5rem', background: '#FFFDF9',
+            padding: '0.8rem',
+            borderTop: '1px solid #FAE8D0',
+            display: 'flex', gap: '0.5rem',
+            background: '#FFFDF9', flexShrink: 0,
           }}>
             <input
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKey}
-              placeholder={
-                checkoutStep === 'idle'
-                  ? 'Ask Vera anything...'
-                  : 'Type your response...'
-              }
+              placeholder={checkoutStep === 'idle' ? 'Ask Vera anything...' : 'Type your response...'}
               style={{
-                flex: 1, border: '1px solid #FAE8D0', padding: '0.6rem 0.9rem',
-                fontFamily: 'Jost', fontSize: '0.82rem', outline: 'none',
-                background: '#FFFDF9', color: '#2C1810',
+                flex: 1, border: '1px solid #FAE8D0',
+                padding: isMobile ? '0.75rem 0.9rem' : '0.6rem 0.9rem',
+                fontFamily: 'Jost', fontSize: isMobile ? '0.9rem' : '0.82rem',
+                outline: 'none', background: '#FFFDF9', color: '#2C1810',
               }}
             />
             <button
@@ -383,18 +405,19 @@ export default function ChatBot({ products = [] }) {
               style={{
                 background: loading ? '#FAE8D0' : '#2C1810',
                 color: loading ? '#8B6F5E' : '#FAE8D0',
-                border: 'none', padding: '0.6rem 1rem',
+                border: 'none',
+                padding: isMobile ? '0.75rem 1.2rem' : '0.6rem 1rem',
                 fontFamily: 'Jost', fontSize: '0.9rem',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
+                transition: 'all 0.2s', minWidth: 44,
               }}>→</button>
           </div>
 
-          {/* Footer hint */}
+          {/* Footer */}
           <div style={{
             padding: '0.3rem', textAlign: 'center',
             fontFamily: 'Jost', fontSize: '0.62rem',
-            color: '#C0A898', letterSpacing: '0.05em',
+            color: '#C0A898', letterSpacing: '0.05em', flexShrink: 0,
           }}>
             {user ? `Logged in as ${user.email}` : 'Type "login" or "register" for full features'}
           </div>
@@ -413,28 +436,4 @@ export default function ChatBot({ products = [] }) {
       `}</style>
     </>
   );
-  <style>{`
-  @media (max-width: 768px) {
-    .chatbot-window {
-      width: calc(100vw - 2rem) !important;
-      right: 1rem !important;
-      left: 1rem !important;
-      bottom: 5.5rem !important;
-      height: 70vh !important;
-    }
-  }
-  @media (max-width: 480px) {
-    .chatbot-window {
-      width: 100vw !important;
-      right: 0 !important;
-      left: 0 !important;
-      bottom: 5rem !important;
-      height: 75vh !important;
-    }
-  }
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
-  }
-`}</style>
 }
