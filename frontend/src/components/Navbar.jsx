@@ -135,6 +135,14 @@ export default function Navbar() {
           .hamburger { display: block !important; }
         }
       `}</style>
+      <style>{`
+  @media (max-width: 768px) {
+    .desktop-nav { display: none !important; }
+    .hamburger { display: block !important; }
+  }
+`}</style>
     </nav>
   );
 }
+
+

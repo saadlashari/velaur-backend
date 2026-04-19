@@ -159,7 +159,17 @@ export default function Checkout() {
         )}
       </div>
 
-      <style>{`@media(max-width:600px){.checkout-grid{grid-template-columns:1fr!important;}}`}</style>
+      <style>{`
+  @media (max-width: 768px) {
+    .checkout-grid { grid-template-columns: 1fr !important; }
+    main > div > div:last-child > div > div { 
+      grid-template-columns: 1fr !important; 
+    }
+  }
+  @media (max-width: 480px) {
+    .checkout-steps > div { gap: 0.3rem !important; }
+  }
+`}</style>
     </main>
   );
 }

@@ -413,4 +413,28 @@ export default function ChatBot({ products = [] }) {
       `}</style>
     </>
   );
+  <style>{`
+  @media (max-width: 768px) {
+    .chatbot-window {
+      width: calc(100vw - 2rem) !important;
+      right: 1rem !important;
+      left: 1rem !important;
+      bottom: 5.5rem !important;
+      height: 70vh !important;
+    }
+  }
+  @media (max-width: 480px) {
+    .chatbot-window {
+      width: 100vw !important;
+      right: 0 !important;
+      left: 0 !important;
+      bottom: 5rem !important;
+      height: 75vh !important;
+    }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+`}</style>
 }

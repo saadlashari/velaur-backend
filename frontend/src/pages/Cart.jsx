@@ -118,7 +118,17 @@ export default function Cart() {
         </div>
       </div>
 
-      <style>{`@media(max-width:768px){main > div > div:last-child{grid-template-columns:1fr!important;}}`}</style>
+      <style>{`
+  @media (max-width: 768px) {
+    main > div > div:last-child { 
+      grid-template-columns: 1fr !important; 
+    }
+    main > div > div:last-child > div:first-child > div {
+      grid-template-columns: 80px 1fr !important;
+      gap: 1rem !important;
+    }
+  }
+`}</style>
     </main>
   );
 }

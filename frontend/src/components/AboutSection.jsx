@@ -68,10 +68,14 @@ export default function AboutSection() {
       </div>
 
       <style>{`
-        @media (max-width: 768px) {
-          section > div > div { grid-template-columns: 1fr !important; gap: 3rem !important; }
-        }
-      `}</style>
+  @media (max-width: 768px) {
+    section > div > div { 
+      grid-template-columns: 1fr !important; 
+      gap: 2rem !important; 
+    }
+    section { padding: 3.5rem 0 !important; }
+  }
+`}</style>
     </section>
   );
 }

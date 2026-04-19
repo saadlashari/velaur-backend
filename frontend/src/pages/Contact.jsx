@@ -116,7 +116,17 @@ export default function Contact() {
         </div>
       </div>
 
-      <style>{`@media(max-width:768px){main > div:last-child > div{grid-template-columns:1fr!important;gap:3rem!important;}}`}</style>
+      <style>{`
+  @media (max-width: 768px) {
+    main > div:last-child > div { 
+      grid-template-columns: 1fr !important; 
+      gap: 2rem !important; 
+    }
+    main > div:last-child > div > div > div { 
+      grid-template-columns: 1fr !important; 
+    }
+  }
+`}</style>
     </main>
   );
 }

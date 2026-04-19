@@ -147,7 +147,14 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      <style>{`@media(max-width:768px){main > div > div:last-child{grid-template-columns:1fr!important;gap:2rem!important;}}`}</style>
+      <style>{`
+  @media (max-width: 768px) {
+    main > div > div:last-child { 
+      grid-template-columns: 1fr !important; 
+      gap: 2rem !important; 
+    }
+  }
+`}</style>
     </main>
   );
 }

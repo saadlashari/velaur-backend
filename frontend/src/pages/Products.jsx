@@ -111,4 +111,15 @@ export default function Products() {
       </div>
     </main>
   );
+
+  <style>{`
+  @media (max-width: 768px) {
+    .products-filters { flex-direction: column !important; }
+    .products-filters input { width: 100% !important; }
+    .products-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 1rem !important; }
+  }
+  @media (max-width: 480px) {
+    .products-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.7rem !important; }
+  }
+`}</style>
 }

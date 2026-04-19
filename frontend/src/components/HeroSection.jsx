@@ -127,11 +127,20 @@ export default function HeroSection() {
       </div>
 
       <style>{`
-        @media (max-width: 768px) {
-          section > div > div { grid-template-columns: 1fr !important; }
-          section > div > div > div:last-child { display: none !important; }
-        }
-      `}</style>
+  @media (max-width: 768px) {
+    section > div > div { 
+      grid-template-columns: 1fr !important;
+      gap: 1.5rem !important;
+      text-align: center !important;
+    }
+    section > div > div > div:last-child { display: none !important; }
+    section { min-height: auto !important; padding: 6rem 0 3rem !important; }
+    section > div > div > div:first-child > div { justify-content: center !important; flex-wrap: wrap !important; }
+  }
+  @media (max-width: 480px) {
+    section { padding: 5rem 0 2.5rem !important; }
+  }
+`}</style>
     </section>
   );
 }
