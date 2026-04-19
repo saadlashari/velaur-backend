@@ -1,12 +1,10 @@
 import axios from "axios";
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API_BASE,
 });
-
-const API = import.meta.env.VITE_API_BASE;
-
-fetch(`${API}/chatbot/config/`)
 
 // Attach JWT token to every request
 api.interceptors.request.use((config) => {
