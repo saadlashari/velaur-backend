@@ -1,24 +1,19 @@
 from pathlib import Path
 from datetime import timedelta
 import os
-from dotenv import load_dotenv
 import dj_database_url
+from dotenv import load_dotenv
 
-print(os.getenv("DATABASE_URL"))
-
+# load_dotenv PEHLE aana chahiye — sabse upar
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'change-me')
 DEBUG = False
 
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-    "velaur-k92p.onrender.com"
-]
+ALLOWED_HOSTS = ['*']
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -26,14 +21,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-
-    # Third party
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     'django_filters',
-    # Velaur apps
     'users.apps.UsersConfig',
     'products',
     'orders',
@@ -73,24 +64,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'velaur_project.wsgi.application'
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'chatbot_db',
-#         'USER': 'postgres',
-#         'PASSWORD': 'saadlashari2002',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
-
 DATABASES = {
     'default': dj_database_url.config(
         default=os.getenv('DATABASE_URL'),
@@ -112,18 +85,8 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
-CORS_ALLOW_ALL_ORIGINS = False
-
-CORS_ALLOWED_ORIGINS = [
-    "https://velaur.vercel.app",
-    "http://localhost:3000",
-]
-
-CORS_ALLOW_HEADERS = [
-    'authorization',
-    'content-type',
-    'x-csrftoken',
-]
+# CORS — sirf ek baar
+CORS_ALLOW_ALL_ORIGINS = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -132,9 +95,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Gemini AI API Key
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
- 
-# Payment Details (already exists but update in .env)
 EASYPAISA_NUMBER = os.getenv('EASYPAISA_NUMBER', '0336-1118331')
 JAZZCASH_NUMBER = os.getenv('JAZZCASH_NUMBER', '0321-1618331')
