@@ -6,14 +6,20 @@ class Command(BaseCommand):
         User = get_user_model()
         email = 'admin@velaur.pk'
         username = 'admin'
-        password = 'velaur@2024'
-        
-        if not User.objects.filter(email=email).exists():
+        password = 'Velaur@ssh'
+
+        if User.objects.filter(email=email).exists():
+            # Already exists — update password
+            user = User.objects.get(email=email)
+            user.set_password(password)
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+            self.stdout.write('✅ Admin password updated!')
+        else:
             User.objects.create_superuser(
                 username=username,
                 email=email,
                 password=password
             )
             self.stdout.write('✅ Superuser created!')
-        else:
-            self.stdout.write('⚠️ Admin already exists!')
